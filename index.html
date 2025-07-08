@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎂 ビフォー・アフター メイクシミュレーター 🎂</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            padding: 20px;
+            animation: backgroundShift 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%); }
+            50% { background: linear-gradient(45deg, #fecfef 0%, #ff9a9e 50%, #ffd1ff 100%); }
+        }
+
+        .birthday-header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .birthday-header h1 {
+            font-size: 3em;
+            color: #ff6b9d;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+
+        .birthday-header .subtitle {
+            font-size: 1.3em;
+            color: #666;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            min-height: 700px;
+        }
+
+        .image-area {
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 600px;
+        }
+
+        .upload-zone {
+            border: 3px dashed #ff6b9d;
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .upload-zone::before {
+            content: '✨';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 2em;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(180deg); }
+        }
+
+        .upload-zone:hover {
+            border-color: #c44569;
+            background: #fff5f8;
+            transform: translateY(-5px);
+        }
+
+        .comparison-container {
+            display: none;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 20px;
+        }
+
+        .comparison-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .comparison-header h2 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .image-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .image-side {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .image-label {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9em;
+            z-index: 10;
+            letter-spacing: 1px;
+        }
+
+        .before-label {
+            background: rgba(108, 117, 125, 0.9);
+        }
+
+        .after-label {
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+        }
+
+        .comparison-image {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            display: block;
+            border-radius: 10px;
+        }
+
+        .makeup-canvas {
+            width: 100%;
+            height: 350px;
+            display: block;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .controls {
+            background: white;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .professional-note {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .control-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 4px solid #ff6b9d;
+        }
+
+        .control-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+            margin-bottom: 8px;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .color-input {
+            width: 100%;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .makeup-presets {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .preset-btn {
+            padding: 12px 8px;
+            border: 2px solid #ff6b9d;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .preset-btn:hover, .preset-btn.active {
+            background: #ff6b9d;
+            color: white;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .status-message {
+            background: #e8f5e8;
+            color: #2d5a2d;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+            text-align: center;
+        }
+
+        .floating-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .heart {
+            position: absolute;
+            color: #ff6b9d;
+            font-size: 20px;
+            animation: floatUp 4s ease-in-out infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 1; }
+            100% { transform: translateY(-100px) scale(1); opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .image-comparison {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .comparison-image, .makeup-canvas {
+                height: 280px;
+            }
+            
+            .birthday-header h1 {
+                font-size: 2em;
+            }
+            
+            .comparison-container {
+                max-width: 100%;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-hearts" id="floatingHearts"></div>
+    
+    <div class="birthday-header">
+        <h1>🎂 Happy Birthday! 🎂</h1>
+        <div class="subtitle">ビフォー・アフター メイクシミュレーター</div>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="image-area">
+                <div class="upload-zone" id="uploadZone">
+                    <h3>📷 ビフォー写真をアップロード</h3>
+                    <p>メイクアップ前の美しい素顔を<br>アップロードしてください</p>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                </div>
+
+                <div class="comparison-container" id="comparisonContainer">
+                    <div class="comparison-header">
+                        <h2>🌟 プロフェッショナル変身 🌟</h2>
+                        <p>左がビフォー、右がアフターです</p>
+                    </div>
+                    
+                    <div class="image-comparison">
+                        <div class="image-side">
+                            <div class="image-label before-label">BEFORE</div>
+                            <img id="beforeImage" class="comparison-image" alt="メイク前">
+                        </div>
+                        <div class="image-side">
+                            <div class="image-label after-label">AFTER</div>
+                            <canvas id="afterCanvas" class="makeup-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-message" id="statusMessage"></div>
+            </div>
+
+            <div class="controls">
+                <div class="professional-note">
+                    <h4>👩‍🎨 メイクアップインストラクターへ</h4>
+                    <p>あなたの技術と愛への<br>特別なバースデーギフト 💝</p>
+                </div>
+
+                <div class="control-section">
+                    <h3>🎨 プロ仕様プリセット</h3>
+                    <div class="makeup-presets">
+                        <button class="preset-btn" onclick="applyPreset('birthday')">🎂 Birthday</button>
+                        <button class="preset-btn" onclick="applyPreset('glamour')">✨ Glamour</button>
+                        <button class="preset-btn" onclick="applyPreset('natural')">🌸 Natural</button>
+                        <button class="preset-btn" onclick="applyPreset('party')">🎉 Party</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>💋 リップメイク</h3>
+                    <div class="control-group">
+                        <label for="lipIntensity">強度 (0-100)</label>
+                        <input type="range" id="lipIntensity" class="slider" min="0" max="100" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label for="lipColor">カラー</label>
+                        <input type="color" id="lipColor" class="color-input" value="#ff6b8a">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>🌸 チーク</h3>
+                    <div class="control-group">
+                        <label for="blushIntensity">強度 (0-100)</label>
+                        <input type="range" id="blushIntensity" class="slider" min="0" max="100" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label for="blushColor">カラー</label>
+                        <input type="color" id="blushColor" class="color-input" value="#ff9aa2">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>👁️ アイシャドウ</h3>
+                    <div class="control-group">
+                        <label for="eyeshadowIntensity">強度 (0-100)</label>
+                        <input type="range" id="eyeshadowIntensity" class="slider" min="0" max="100" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label for="eyeshadowColor">カラー</label>
+                        <input type="color" id="eyeshadowColor" class="color-input" value="#d4a5a5">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>🎨 似顔絵効果</h3>
+                    <div class="control-group">
+                        <label for="cartoonEffect">似顔絵強度 (0-100)</label>
+                        <input type="range" id="cartoonEffect" class="slider" min="0" max="100" value="50">
+                    </div>
+                    <div class="control-group">
+                        <label for="colorLevels">色階調レベル (3-12)</label>
+                        <input type="range" id="colorLevels" class="slider" min="3" max="12" value="6">
+                    </div>
+                </div>
+                <div class="control-section">
+                    <h3>✨ 美肌効果</h3>
+                    <div class="control-group">
+                        <label for="brightness">明るさ (-50 to 50)</label>
+                        <input type="range" id="brightness" class="slider" min="-50" max="50" value="0">
+                    </div>
+                    <div class="control-group">
+                        <label for="smoothing">スムージング (0-100)</label>
+                        <input type="range" id="smoothing" class="slider" min="0" max="100" value="0">
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="resetMakeup()">
+                        🔄 リセット
+                    </button>
+                    <button class="btn btn-primary" onclick="saveMakeup()">
+                        💝 保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let originalImage = null;
+        let canvas, ctx;
+
+        // 浮遊するハートエフェクト
+        function createFloatingHeart() {
+            const heart = document.createElement('div');
+            heart.textContent = '💕';
+            heart.className = 'heart';
+            heart.style.left = Math.random() * 100 + '%';
+            heart.style.animationDelay = Math.random() * 4 + 's';
+            heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+            
+            document.getElementById('floatingHearts').appendChild(heart);
+            
+            setTimeout(() => {
+                heart.remove();
+            }, 7000);
+        }
+
+        // 定期的にハートを生成
+        setInterval(createFloatingHeart, 2000);
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            canvas = document.getElementById('afterCanvas');
+            ctx = canvas.getContext('2d');
+            
+            setupEventListeners();
+            showStatus('🎉 お誕生日おめでとう！ 特別なメイクツールの準備完了！');
+            
+            // 初期ハート生成
+            for(let i = 0; i < 5; i++) {
+                setTimeout(createFloatingHeart, i * 500);
+            }
+        });
+
+        function setupEventListeners() {
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadZone.addEventListener('click', () => fileInput.click());
+            uploadZone.addEventListener('dragover', handleDragOver);
+            uploadZone.addEventListener('drop', handleDrop);
+            uploadZone.addEventListener('dragleave', handleDragLeave);
+
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // コントロールイベント
+            const sliders = document.querySelectorAll('.slider');
+            sliders.forEach(slider => {
+                slider.addEventListener('input', updateMakeup);
+            });
+
+            const colorInputs = document.querySelectorAll('.color-input');
+            colorInputs.forEach(input => {
+                input.addEventListener('change', updateMakeup);
+            });
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                loadImage(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                loadImage(file);
+            }
+        }
+
+        function loadImage(file) {
+            if (!file.type.startsWith('image/')) {
+                showStatus('❌ 画像ファイルを選択してください');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                originalImage = new Image();
+                originalImage.onload = function() {
+                    // BEFOREイメージを設定
+                    document.getElementById('beforeImage').src = e.target.result;
+                    
+                    // キャンバスサイズを調整
+                    canvas.width = originalImage.width;
+                    canvas.height = originalImage.height;
+                    
+                    // UIを更新
+                    document.getElementById('uploadZone').style.display = 'none';
+                    document.getElementById('comparisonContainer').style.display = 'block';
+                    
+                    // 初期描画
+                    updateMakeup();
+                    
+                    showStatus('✨ 美しい写真が読み込まれました！ プロメイクを始めましょう！');
+                    
+                    // 成功時のハート爆発
+                    for(let i = 0; i < 10; i++) {
+                        setTimeout(createFloatingHeart, i * 100);
+                    }
+                };
+                originalImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateMakeup() {
+            if (!originalImage) return;
+
+            // キャンバスをクリア
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 元画像を描画
+            ctx.drawImage(originalImage, 0, 0);
+            
+            // 美肌効果を適用
+            applyBeautyEffects();
+            
+            // メイクアップ効果を適用
+            applyMakeupEffects();
+        }
+
+        function applyBeautyEffects() {
+            const brightness = parseInt(document.getElementById('brightness').value);
+            const smoothing = parseInt(document.getElementById('smoothing').value);
+            
+            // まず似顔絵風の効果を適用
+            applyIllustrationEffect();
+            
+            // 明るさ調整
+            if (brightness !== 0) {
+                ctx.globalCompositeOperation = brightness > 0 ? 'screen' : 'multiply';
+                ctx.globalAlpha = Math.abs(brightness) / 100;
+                ctx.fillStyle = brightness > 0 ? 'white' : 'black';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.globalAlpha = 1;
+                ctx.globalCompositeOperation = 'source-over';
+            }
+            
+            // スムージング効果（簡易版）
+            if (smoothing > 0) {
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const smoothedData = applySmoothingFilter(imageData, smoothing);
+                ctx.putImageData(smoothedData, 0, 0);
+            }
+        }
+
+        function applyIllustrationEffect() {
+            // 似顔絵風の効果を適用
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const illustrationData = applyCartoonFilter(imageData);
+            ctx.putImageData(illustrationData, 0, 0);
+        }
+
+        function applyCartoonFilter(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const cartoonStrength = parseInt(document.getElementById('cartoonEffect').value) / 100;
+            const colorLevels = parseInt(document.getElementById('colorLevels').value);
+            
+            // 似顔絵効果を適用する強度
+            if (cartoonStrength === 0) return imageData;
+            
+            // 色を減らして似顔絵風に（色の階調を減らす）
+            for (let i = 0; i < data.length; i += 4) {
+                // RGB値を取得
+                let r = data[i];
+                let g = data[i + 1];
+                let b = data[i + 2];
+                
+                // 元の色を保存
+                const originalR = r;
+                const originalG = g;
+                const originalB = b;
+                
+                // 色の階調を減らす（似顔絵効果）
+                r = Math.floor(r / (256 / colorLevels)) * (256 / colorLevels);
+                g = Math.floor(g / (256 / colorLevels)) * (256 / colorLevels);
+                b = Math.floor(b / (256 / colorLevels)) * (256 / colorLevels);
+                
+                // 彩度を上げる（鮮やかに）
+                const saturation = 1.2 + (cartoonStrength * 0.3);
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                
+                if (max !== min) {
+                    const l = (max + min) / 2;
+                    r = Math.min(255, l + (r - l) * saturation);
+                    g = Math.min(255, l + (g - l) * saturation);
+                    b = Math.min(255, l + (b - l) * saturation);
+                }
+                
+                // 肌色を美しく調整
+                if (r > 160 && g > 120 && b > 100 && r > g && g > b) {
+                    // 肌色の場合、ピンク味を加えて美肌効果
+                    r = Math.min(255, r * (1.03 + cartoonStrength * 0.02));
+                    g = Math.min(255, g * (0.98 + cartoonStrength * 0.01));
+                    b = Math.min(255, b * (0.95 + cartoonStrength * 0.01));
+                }
+                
+                // 髪の色を深くする
+                if (r < 100 && g < 100 && b < 100) {
+                    r = Math.max(0, r * (0.9 - cartoonStrength * 0.1));
+                    g = Math.max(0, g * (0.9 - cartoonStrength * 0.1));
+                    b = Math.max(0, b * (0.9 - cartoonStrength * 0.1));
+                }
+                
+                // 元の色と似顔絵色をブレンド
+                data[i] = originalR * (1 - cartoonStrength) + r * cartoonStrength;
+                data[i + 1] = originalG * (1 - cartoonStrength) + g * cartoonStrength;
+                data[i + 2] = originalB * (1 - cartoonStrength) + b * cartoonStrength;
+            }
+            
+            return imageData;
+        }
+
+        function applySmoothingFilter(imageData, intensity) {
+            // 簡易的なスムージングフィルター
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const factor = intensity / 100;
+            
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const i = (y * width + x) * 4;
+                    
+                    // 周囲のピクセルの平均を計算
+                    for (let c = 0; c < 3; c++) {
+                        const current = data[i + c];
+                        const avg = (
+                            data[((y-1) * width + (x-1)) * 4 + c] +
+                            data[((y-1) * width + x) * 4 + c] +
+                            data[((y-1) * width + (x+1)) * 4 + c] +
+                            data[(y * width + (x-1)) * 4 + c] +
+                            data[(y * width + (x+1)) * 4 + c] +
+                            data[((y+1) * width + (x-1)) * 4 + c] +
+                            data[((y+1) * width + x) * 4 + c] +
+                            data[((y+1) * width + (x+1)) * 4 + c]
+                        ) / 8;
+                        
+                        data[i + c] = current * (1 - factor) + avg * factor;
+                    }
+                }
+            }
+            
+            return imageData;
+        }
+
+        function applyMakeupEffects() {
+            const lipIntensity = parseInt(document.getElementById('lipIntensity').value);
+            const lipColor = document.getElementById('lipColor').value;
+            const blushIntensity = parseInt(document.getElementById('blushIntensity').value);
+            const blushColor = document.getElementById('blushColor').value;
+            const eyeshadowIntensity = parseInt(document.getElementById('eyeshadowIntensity').value);
+            const eyeshadowColor = document.getElementById('eyeshadowColor').value;
+            
+            // リップ効果（画像下部中央）
+            if (lipIntensity > 0) {
+                applyColorEffect(
+                    canvas.width * 0.35, canvas.height * 0.75,
+                    canvas.width * 0.3, canvas.height * 0.1,
+                    lipColor, lipIntensity, 'multiply'
+                );
+            }
+            
+            // チーク効果（左右の頬）
+            if (blushIntensity > 0) {
+                // 左頬
+                applyColorEffect(
+                    canvas.width * 0.2, canvas.height * 0.5,
+                    canvas.width * 0.15, canvas.height * 0.15,
+                    blushColor, blushIntensity, 'overlay'
+                );
+                // 右頬
+                applyColorEffect(
+                    canvas.width * 0.65, canvas.height * 0.5,
+                    canvas.width * 0.15, canvas.height * 0.15,
+                    blushColor, blushIntensity, 'overlay'
+                );
+            }
+            
+            // アイシャドウ効果（左右の目元）
+            if (eyeshadowIntensity > 0) {
+                // 左目
+                applyColorEffect(
+                    canvas.width * 0.25, canvas.height * 0.35,
+                    canvas.width * 0.12, canvas.height * 0.08,
+                    eyeshadowColor, eyeshadowIntensity, 'multiply'
+                );
+                // 右目
+                applyColorEffect(
+                    canvas.width * 0.63, canvas.height * 0.35,
+                    canvas.width * 0.12, canvas.height * 0.08,
+                    eyeshadowColor, eyeshadowIntensity, 'multiply'
+                );
+            }
+        }
+
+        function applyColorEffect(x, y, width, height, color, intensity, blendMode) {
+            ctx.save();
+            ctx.globalCompositeOperation = blendMode;
+            ctx.globalAlpha = intensity / 100;
+            
+            const gradient = ctx.createRadialGradient(x + width/2, y + height/2, 0, x + width/2, y + height/2, Math.max(width, height)/2);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, 'transparent');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x, y, width, height);
+            
+            ctx.restore();
+        }
+
+        function applyPreset(presetName) {
+            // プリセットボタンの状態更新
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const presets = {
+                birthday: {
+                    lipIntensity: 70,
+                    lipColor: '#ff6b8a',
+                    blushIntensity: 50,
+                    blushColor: '#ffb3d4',
+                    eyeshadowIntensity: 60,
+                    eyeshadowColor: '#d4a5d5',
+                    cartoonEffect: 50,
+                    colorLevels: 6,
+                    smoothing: 25
+                },
+                glamour: {
+                    lipIntensity: 90,
+                    lipColor: '#ff1744',
+                    blushIntensity: 70,
+                    blushColor: '#ff8a80',
+                    eyeshadowIntensity: 80,
+                    eyeshadowColor: '#9c27b0',
+                    cartoonEffect: 70,
+                    colorLevels: 5,
+                    smoothing: 30
+                },
+                natural: {
+                    lipIntensity: 35,
+                    lipColor: '#ffab91',
+                    blushIntensity: 25,
+                    blushColor: '#ffcdd2',
+                    eyeshadowIntensity: 20,
+                    eyeshadowColor: '#d7ccc8',
+                    cartoonEffect: 30,
+                    colorLevels: 8,
+                    smoothing: 15
+                },
+                party: {
+                    lipIntensity: 85,
+                    lipColor: '#e91e63',
+                    blushIntensity: 65,
+                    blushColor: '#f48fb1',
+                    eyeshadowIntensity: 75,
+                    eyeshadowColor: '#673ab7',
+                    cartoonEffect: 60,
+                    colorLevels: 4,
+                    smoothing: 20
+                }
+            };
+
+            const preset = presets[presetName];
+            if (preset) {
+                Object.keys(preset).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = preset[key];
+                    }
+                });
+                
+                updateMakeup();
+                showStatus(`🎨 ${presetName} スタイルを適用しました！ 美しい仕上がりです！`);
+                
+                // プリセット適用時のハート
+                for(let i = 0; i < 3; i++) {
+                    setTimeout(createFloatingHeart, i * 200);
+                }
+            }
+        }
+
+        function resetMakeup() {
+            document.getElementById('lipIntensity').value = 0;
+            document.getElementById('blushIntensity').value = 0;
+            document.getElementById('eyeshadowIntensity').value = 0;
+            document.getElementById('brightness').value = 0;
+            document.getElementById('smoothing').value = 0;
+            
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            updateMakeup();
+            showStatus('🔄 新しいキャンバスの準備ができました！');
+        }
+
+        function saveMakeup() {
+            if (!originalImage) {
+                showStatus('❌ 保存する写真がありません');
+                return;
+            }
+
+            // ビフォー・アフター合成画像を作成
+            const combinedCanvas = document.createElement('canvas');
+            const combinedCtx = combinedCanvas.getContext('2d');
+            
+            const padding = 20;
+            const labelHeight = 40;
+            combinedCanvas.width = (canvas.width * 2) + (padding * 3);
+            combinedCanvas.height = canvas.height + (padding * 2) + labelHeight;
+            
+            // 背景
+            combinedCtx.fillStyle = '#ffffff';
+            combinedCtx.fillRect(0, 0, combinedCanvas.width, combinedCanvas.height);
+            
+            // BEFORE画像
+            combinedCtx.drawImage(originalImage, padding, padding + labelHeight, canvas.width, canvas.height);
+            
+            // AFTER画像
+            combinedCtx.drawImage(canvas, padding + canvas.width + padding, padding + labelHeight, canvas.width, canvas.height);
+            
+            // ラベル
+            combinedCtx.fillStyle = '#333333';
+            combinedCtx.font = 'bold 24px Arial';
+            combinedCtx.textAlign = 'center';
+            
+            // BEFOREラベル
+            combinedCtx.fillText('BEFORE', padding + canvas.width/2, padding + 25);
+            
+            // AFTERラベル
+            combinedCtx.fillStyle = '#ff6b9d';
+            combinedCtx.fillText('AFTER', padding + canvas.width + padding + canvas.width/2, padding + 25);
+            
+            // タイトル
+            combinedCtx.fillStyle = '#ff6b9d';
+            combinedCtx.font = 'bold 20px Arial';
+            combinedCtx.fillText('🎂 Happy Birthday Makeup Transformation 🎂', combinedCanvas.width/2, combinedCanvas.height - 10);
+            
+            const link = document.createElement('a');
+            link.download = 'birthday_makeup_before_after.png';
+            link.href = combinedCanvas.toDataURL();
+            link.click();
+            
+            showStatus('💝 ビフォー・アフター画像が保存されました！ 素晴らしい作品です！');
+            
+            // 保存成功のハート爆発
+            for(let i = 0; i < 15; i++) {
+                setTimeout(createFloatingHeart, i * 100);
+            }
+        }
+
+        function showStatus(message) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            setTimeout(() => statusDiv.style.display = 'none', 4000);
+        }
+    </script>
+</body>
+</html>
